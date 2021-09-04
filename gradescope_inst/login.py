@@ -17,7 +17,7 @@ def attempt_school_login(school="berkeley"):
     while True:
         wait = WebDriverWait(driver, 120)
         try:
-            wait.until(lambda driver: driver.current_url.startswith("https://www.gradescope.com"))
+            wait.until(lambda driver: driver.current_url.startswith("https://www.gradescope.com") and "saml" not in driver.current_url)
             break
         except TimeoutException:
             pass

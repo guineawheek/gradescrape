@@ -1,2 +1,5 @@
 cookies.json
 geckodriver.log
+*.ipynb
+*.pdf
+__pycache__/
