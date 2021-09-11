@@ -3,3 +3,4 @@ geckodriver.log
 *.ipynb
 *.pdf
 __pycache__/
+har/
