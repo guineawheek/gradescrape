@@ -32,8 +32,8 @@ def get_tokens(cookie_js):
     # TODO: validate output to ensure all two cookies exist
     ret = {}
     for cookie in cookie_js:
-        if cookie['name'] in ("signed_token", "remember_me"):
-            ret[cookie['name']] = cookie['value']
+        #if cookie['name'] in ("signed_token", "remember_me", "_gradescope_session"):
+        ret[cookie['name']] = cookie['value']
     return ret
 
 __all__ = [attempt_school_login, get_tokens]
