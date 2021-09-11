@@ -1,7 +1,11 @@
 from bs4 import BeautifulSoup
 import requests
 import datetime
+from urllib.parse import urlparse
 
+
+__all__ = ["Session", "Course", "Assignment"]
+BASE_URL = "https://www.gradescope.com"
 
 class Session:
     def __init__(self, cookies):
@@ -12,12 +16,15 @@ class Session:
         r.raise_for_status()
 
         return BeautifulSoup(r.text, features="lxml")
+    
+    def post_soup(self, url) -> BeautifulSoup:
+        pass
 
 
     def get_courses(self):
         """List all courses that this user can access"""    
         # TODO: handle logout scenario
-        soup = self.get_soup("https://www.gradescope.com/")
+        soup = self.get_soup(BASE_URL)
 
         #for a in cs.find_all("a", class_="courseBox"):
         #    print(a['href'])
@@ -50,7 +57,7 @@ class Course:
                                 release_date: datetime.datetime, due_date: datetime.datetime,
                                 allow_late_submissions=False, late_due_date: datetime.datetime=None, student_submission=True,
                                 enforce_time_limit=False, time_limit=None, group_submission=False, group_size=None,
-                                template_visible=False):
+                                template_visible=False) -> Assignment:
 
 
         # Run GET on /assignments to fetch the csrf token. The csrf token is the same
@@ -111,7 +118,20 @@ class Course:
                 raise ValueError("group_size should be larger than 1; if you want solo submissions, set group_submission=False")
             data['assignment[group_size]'] = int(group_size)
         
-        return requests.post(self.get_url() + "/assignments", data=data, files=files, cookies=self.ses.cookies)
+        r = requests.post(self.get_url() + "/assignments", data=data, files=files, cookies=self.ses.cookies)
+        r.raise_for_status()
+
+        aid = int(urlparse(r.url).path.split("/")[4])
+        return Assignment(self.ses, aid)
+
+
+class Assignment:
+    def __init__(self, session: Session, aid: int):
+        self.ses = session
+        self.aid = aid
+    
+    def patch_outline(self, outline: dict):
+        pass
 
 
 def to_gradescope_time(d: datetime.datetime):
