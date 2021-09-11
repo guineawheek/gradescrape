@@ -4,3 +4,4 @@ geckodriver.log
 *.pdf
 __pycache__/
 har/
+.ipynb_checkpoints/
