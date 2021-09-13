@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 import datetime
-from .util import to_gradescope_time, BASE_URL
+from .util import to_gradescope_time, BASE_URL, validate_leaderboard, validate_group_size, validate_late_submissions
 
 if TYPE_CHECKING:
     from .session import Session
@@ -61,26 +61,9 @@ class AutograderAssignment(Assignment):
             'assignment[memory_limit]': int(memory_limit),
             'commit': "Save"
         }
-
-        if allow_late_submissions:
-            if late_due_date is None:
-                raise ValueError("allow_late_submissions requires a late due date")
-            data['assignment[hard_due_date_string]'] = to_gradescope_time(late_due_date)
-
-        
-        if group_size is not None:
-            if not group_submission:
-                raise ValueError("group_size requires group_submission to be True")
-            if group_size <= 1:
-                raise ValueError("group_size should be larger than 1; if you want solo submissions, set group_submission=False")
-            data['assignment[group_size]'] = int(group_size)
-        
-        if leaderboard_max_entries is not None:
-            if not leaderboard_enabled:
-                raise ValueError("leaderboard_max_entries requires leaderboard_enabled to be True")
-            if leaderboard_max_entries < 0:
-                raise ValueError("leaderboard_max_entries should be non-negative")
-            data['assignment[group_size]'] = int(group_size)
+        validate_late_submissions(allow_late_submissions, late_due_date, data)
+        validate_group_size(group_size, group_submission, data)
+        validate_leaderboard(leaderboard_max_entries, leaderboard_enabled, data)
         
         for sub_method in ("upload", "github", "bitbucket"):
             data['assignment[submission_methods[' + sub_method + ']]'] = int(sub_method in submission_methods)
