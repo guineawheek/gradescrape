@@ -66,7 +66,7 @@ def login_session(username: str, password: str):
     #TODO: this flow is non-functional for some reason -- gradescope returns 301 instead of 302
 
     s = requests.Session()
-    url = "https://gradescope.com/"
+    url = "https://www.gradescope.com/"
     page = BeautifulSoup(s.get(url).text)
     csrf_token = page.find("meta", attrs={"name": "csrf-token"})['content'] 
     data = {
