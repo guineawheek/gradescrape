@@ -3,12 +3,12 @@ import datetime
 from urllib.parse import urlparse
 from .util import BASE_URL, to_gradescope_time, validate_late_submissions, validate_group_size, validate_leaderboard
 from typing import TYPE_CHECKING
+from .assignment import Assignment, AutograderAssignment
 if TYPE_CHECKING:
     from .session import Session
-    from .assignment import Assignment, AutograderAssignment
 __all__ = ["Course"]
 class Course:
-    def __init__(self, session: Session, cid: int):
+    def __init__(self, session, cid: int):
         self.ses: Session = session
         self.cid: int = cid
         self.name: str = None
