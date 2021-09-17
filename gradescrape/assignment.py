@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 __all__ = ["Assignment", "PDFAssignment", "AutograderAssignment"]
 class Assignment:
-    def __init__(self, session: Session, course, aid: int):
+    def __init__(self, session, course, aid: int):
         self.ses = session
         self.course = course
         self.aid = aid
@@ -20,6 +20,12 @@ class PDFAssignment(Assignment):
 
 class AutograderAssignment(Assignment):
     def update_autograder_zip(self, autograder_zip: bytes, zip_name:str="autograder.zip"):
+        """Upload a new autograder zip file. 
+
+        Example usage:
+        with open("autograder.zip", "rb") as f: 
+            assgn.update_autograder_zip(f.read(), "autograder.zip")
+        """
 
         csrf_token, page = self.ses.get_csrf(self.get_url() + "/configure_autograder", True) # csrf token
 

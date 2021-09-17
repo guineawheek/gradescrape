@@ -2,8 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from .util import BASE_URL 
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .course import Course
+from .course import Course
 
 
 # TODO: 
