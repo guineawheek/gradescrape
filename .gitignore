@@ -1,4 +1,5 @@
 cookies.json
+creds.json
 geckodriver.log
 *.ipynb
 *.pdf

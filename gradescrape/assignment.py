@@ -1,14 +1,13 @@
 from typing import TYPE_CHECKING
 import datetime
 from .util import to_gradescope_time, BASE_URL, validate_leaderboard, validate_group_size, validate_late_submissions
-
 if TYPE_CHECKING:
-    from .session import Session
+    from .course import Course
 
 __all__ = ["Assignment", "PDFAssignment", "AutograderAssignment"]
 class Assignment:
-    def __init__(self, session, course, aid: int):
-        self.ses = session
+    def __init__(self, course, aid: int):
+        self.ses = course.ses
         self.course = course
         self.aid = aid
 

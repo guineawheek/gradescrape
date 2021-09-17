@@ -24,7 +24,7 @@ class Session:
         #else:
         #    self.cookies = cookies
 
-    def login_session(self, username: str, password: str) -> requests.Response:
+    def login(self, username: str, password: str) -> requests.Response:
         """
         Logs in with a regular old Gradescope username and password. 
         SAML is difficult to script anyway.
@@ -46,14 +46,27 @@ class Session:
         return r
 
     def get_soup(self, *args, **kwargs) -> BeautifulSoup:
+
+        ret_r = False
+        if "_return_request_object" in kwargs:
+            ret_r = True
+            del kwargs["_return_request_object"]
         r = self.req.get(*args, **kwargs)
         r.raise_for_status()
+        if ret_r:
+            return BeautifulSoup(r.text, features="lxml"), r
 
         return BeautifulSoup(r.text, features="lxml")
     
     def post_soup(self, *args, **kwargs) -> BeautifulSoup:
+        ret_r = False
+        if "_return_request_object" in kwargs:
+            ret_r = True
+            del kwargs["_return_request_object"]
         r = self.req.get(*args, **kwargs)
         r.raise_for_status()
+        if ret_r:
+            return BeautifulSoup(r.text, features="lxml"), r
 
         return BeautifulSoup(r.text, features="lxml")
 
