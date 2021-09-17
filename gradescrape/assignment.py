@@ -82,10 +82,6 @@ class AutograderAssignment(Assignment):
         
         for sub_method in ("upload", "github", "bitbucket"):
             data['assignment[submission_methods[' + sub_method + ']]'] = int(sub_method in submission_methods)
-        
-        import pprint
-        pprint.pprint(data)
-        
 
         return self.ses.post_soup(self.get_url(), data=data, allow_redirects=False, _return_request_object=True)
         #r = requests.post(self.get_url(), data=data, cookies=self.ses.cookies)
