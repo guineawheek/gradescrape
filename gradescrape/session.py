@@ -63,7 +63,7 @@ class Session:
         if "_return_request_object" in kwargs:
             ret_r = True
             del kwargs["_return_request_object"]
-        r = self.req.get(*args, **kwargs)
+        r = self.req.post(*args, **kwargs)
         r.raise_for_status()
         if ret_r:
             return BeautifulSoup(r.text, features="lxml"), r
