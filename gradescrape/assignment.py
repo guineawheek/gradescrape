@@ -13,7 +13,9 @@ class Assignment:
         self.aid = aid
 
 class PDFAssignment(Assignment):
-    def update_pdf_outline(self, outline: dict):
+    def update_outline_raw(self, outline: dict):
+        # Patches the outline. Expects the raw structure that gradescope itself uses.
+
         raise NotImplementedError()
 
 class AutograderAssignment(Assignment):

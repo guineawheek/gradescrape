@@ -5,7 +5,7 @@ from .util import BASE_URL, to_gradescope_time, validate_late_submissions, valid
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .session import Session
-    from .assignment import Assignment, AutograderAssignment
+    from .assignment import Assignment, AutograderAssignment, PDFAssignment
 __all__ = ["Course"]
 class Course:
     def __init__(self, session: Session, cid: int):
@@ -91,7 +91,7 @@ class Course:
                                 release_date: datetime.datetime, due_date: datetime.datetime, submission_type: str="image", 
                                 allow_late_submissions=False, late_due_date: datetime.datetime=None, student_submission=True,
                                 enforce_time_limit=False, time_limit=None, group_submission=False, group_size=None,
-                                template_visible=False) -> Assignment:
+                                template_visible=False) -> PDFAssignment:
 
         """
         Creates a new PDF assignment. Students usually submit PDFs to this assignment to be graded manually.
@@ -185,4 +185,4 @@ class Course:
         r.raise_for_status()
 
         aid = int(urlparse(r.url).path.split("/")[4])
-        return Assignment(self.ses, aid)
+        return PDFAssignment(self.ses, aid)
