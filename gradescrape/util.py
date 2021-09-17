@@ -1,5 +1,25 @@
 import datetime
 BASE_URL = "https://www.gradescope.com"
+
+def date_at(dt=None, hour=23, minute=59):
+    """Utility function that returns either today's date or a specific datetime with a certain hour and minute."""
+    if not dt:
+        dt = datetime.datetime.today()
+    return datetime.datetime(dt.year, dt.month, dt.day, hour=hour, minute=minute)
+
+def next_day(day_str, hour=23, minute=59):
+    """Utility function to get the next of:
+    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    If today's date is the day_str, then we take a date a week from now.
+    The hour and minute returned is by default 11:59 PM.
+    """
+    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    wd = days.index(day_str)
+    now = datetime.datetime.now()
+    return date_at(now + datetime.timedelta(days=((wd - now.weekday() - 1) % 7 + 1)))
+
 def to_gradescope_time(d: datetime.datetime):
     """
     Converts datetime.datetime objects to gradescope's time/date format.
