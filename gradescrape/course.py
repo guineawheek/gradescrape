@@ -126,7 +126,7 @@ class Course:
     def create_pdf_assignment(self, title: str, template_pdf_name: str, template_pdf_data: bytes, 
                                 release_date: datetime.datetime, due_date: datetime.datetime, submission_type: str="image", 
                                 allow_late_submissions=False, late_due_date: datetime.datetime=None, student_submission=True,
-                                enforce_time_limit=False, time_limit=None, group_submission=False, group_size=None,
+                                enforce_time_limit=False, time_limit=None, group_submission=False, group_size=None, anon_grading=False,
                                 template_visible=False) -> PDFAssignment:
 
         """
@@ -163,6 +163,7 @@ class Course:
                                    online timed exams. None, if there is no time limit. Defaults None.
         enforce_time_limit      -- whether to enforce the assignment's time limit. Defaulse False.
         group_submission        -- whether to allow groups in assignment submissions. Defaults False.
+        anon_grading            -- whether to anonymize student submissions when grading
         group_size              -- integer describing the size of the group, or None for no maximum or not applicable. Defaults None.
 
         
@@ -208,6 +209,7 @@ class Course:
             'assignment[submission_type]': submission_type,
             'assignment[group_submission]': int(bool(group_submission)),
             'assignment[template_visible_to_students]': int(bool(template_visible)),
+            'assignment[submissions_anonymized]': int(bool(anon_grading)),
         }
         validate_late_submissions(allow_late_submissions, late_due_date, data)
         validate_group_size(group_size, group_submission, data)

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 import typing
 import datetime
+import requests
 from .util import *
 if TYPE_CHECKING:
     from .course import Course
@@ -8,17 +9,79 @@ if TYPE_CHECKING:
 __all__ = ["Assignment", "PDFAssignment", "AutograderAssignment"]
 class Assignment:
     def __init__(self, course, aid: int):
-        self.ses = course.ses
-        self.course = course
-        self.aid = aid
+        self.ses: requests.Session = course.ses
+        self.course: Course = course
+        self.aid: int = aid
     def get_url(self):
         return self.course.get_url() + f"/assignments/{self.aid}"
 
 class PDFAssignment(Assignment):
-    def update_outline_raw(self, outline: dict):
+
+    def update_outline(self, outline: list):
+        """Patches the outline. Use the format listed below.
+        
+        [
+            {
+                "title": "question-1",
+                "weight": 4.0,
+                "children": [
+                    {
+                        "title": "subpart",
+                        "weight": 2.0,
+                    },
+                    {
+                        "title": "subpart2",
+                        "weight": 2.0,
+                    }
+                ]
+            },
+            {
+                "title": "question-2",
+                "weight": 20.0,
+            }
+        ]
+        """
+
+        data = { 
+            "assignment": {
+                "identification_regions": {
+                    "name": None,
+                    "sid": None
+                }
+            },
+            "question_data": []
+        }
+
+        for q in outline:
+            qz = {
+                'title': q['title'],
+                'weight': q['weight'],
+                'crop_rect_list': [{"x1": 0, "x2": 100, "y1": 90, "y2": 100, "page_number": None}],
+            }
+            children = []
+            real_weight = 0
+            for subq in q.get('children', []):
+                sqz = {
+                    'title': subq['title'],
+                    'weight': float(subq['weight']),
+                    'crop_rect_list': [{"x1": 0, "x2": 100, "y1": 90, "y2": 100, "page_number": None}],
+                }
+                real_weight += sqz['weight']
+                children.append(sqz)
+            if children:
+                qz['children'] = children
+                qz['weight'] = real_weight
+            data['qusetion_data'].append(qz)
+        print(data) 
+
+            
+    def update_outline_raw(self, outline_raw: dict):
         # Patches the outline. Expects the raw structure that gradescope itself uses.
 
-        raise NotImplementedError()
+        csrf_token, page=self.ses.get_csrf(self.get_url() + "/configure_autograder", True)
+        return self.ses.patch(self.get_url() + "/outline/edit", json=outline_raw, headers={"X-CSRF-Token": csrf_token})
+
+        #raise NotImplementedError()
 
 class AutograderAssignment(Assignment):
     def update_autograder_zip(self, autograder_zip: bytes, zip_name:str="autograder.zip"):
