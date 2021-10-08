@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 __all__ = ["Assignment", "PDFAssignment", "AutograderAssignment"]
 class Assignment:
     def __init__(self, course, aid: int):
-        self.ses: requests.Session = course.ses
+        self.ses = course.ses
         self.course: Course = course
         self.aid: int = aid
     def get_url(self):
@@ -55,7 +55,6 @@ class PDFAssignment(Assignment):
         for q in outline:
             qz = {
                 'title': q['title'],
-                'weight': q['weight'],
                 'crop_rect_list': [{"x1": 0, "x2": 100, "y1": 90, "y2": 100, "page_number": None}],
             }
             children = []
@@ -71,17 +70,84 @@ class PDFAssignment(Assignment):
             if children:
                 qz['children'] = children
                 qz['weight'] = real_weight
-            data['qusetion_data'].append(qz)
-        print(data) 
+            else:
+                qz['weight'] = float(q['weight'])
+            data['question_data'].append(qz)
+        return self.update_outline_raw(data)
 
             
     def update_outline_raw(self, outline_raw: dict):
         # Patches the outline. Expects the raw structure that gradescope itself uses.
 
-        csrf_token, page=self.ses.get_csrf(self.get_url() + "/configure_autograder", True)
-        return self.ses.patch(self.get_url() + "/outline/edit", json=outline_raw, headers={"X-CSRF-Token": csrf_token})
+        csrf_token, page=self.ses.get_csrf(self.get_url() + "/outline/edit", True)
+        return self.ses.req.patch(self.get_url() + "/outline/", json=outline_raw, headers={"X-CSRF-Token": csrf_token})
 
         #raise NotImplementedError()
+
+    def update_settings(self, title: str=None, 
+                        release_date: datetime.datetime=None, due_date: datetime.datetime=None,
+                        allow_late_submissions=False, late_due_date: datetime.datetime=None, 
+                        student_submission=True,
+                        manual_grading=False,
+                        anon_grading=False,
+                        group_submission=False, group_size=None,
+                        submission_type="image",
+                        rubric_select_one=False, 
+                        ceiling=True,
+                        floor=True,
+                        rubric_visibility_setting="show_all_rubric_items",
+                        scoring_type="positive",
+                        template_pdf_name=None,
+                        template_pdf_data=None,
+                        ) -> Assignment:
+        
+        if any([title is None]):
+            raise ValueError("title are mandatory arguments!")
+        # -----------------------------4020024720658906211394196285
+        # Content-Disposition: form-data; name="template_pdf"; filename=""
+        # Content-Type: application/octet-stream
+
+
+        #
+
+        # TODO: make the above mandatory settings optional
+        csrf_token, page = self.ses.get_csrf(self.get_url() + "/edit", True) # csrf token
+
+        data = {
+            'authenticity_token': csrf_token,
+            'utf8': "\u2713",
+            '_method': "patch",
+            'assignment[title]': title, # assignment title
+            'assignment[type]': "PDFAssignment", # pdf assignment
+            'assignment[bubble_sheet]': 'false',
+            'assignment[student_submission]': str(bool(student_submission)).lower(),
+            'assignment[submissions_anonymized]': int(bool(anon_grading)),
+            'assignment[release_date_string]':  to_gradescope_time(release_date),
+            'assignment[due_date_string]':  to_gradescope_time(due_date),
+            'allow_late_submissions': "on" if allow_late_submissions else "0",
+            'assignment[group_submission]': int(bool(group_submission)),
+            'assignment[manual_grading]': int(bool(manual_grading)),
+            'assignment[rubric_visibility_setting]': rubric_visibility_setting, # show_only_applied_rubric_items, hide_all_rubric_items
+            'assignment[submission_type]': submission_type, # image, pdf
+            'assignment[scoring_type]': scoring_type, # positive, negative
+            'assignment[ceiling]': int(bool(ceiling)),
+            'assignment[floor]': int(bool(floor)),
+            # update_existing_questions
+            'assignment[rubric_item_groups_mutually_exclusive]': str(bool(rubric_select_one)),
+            # hide_all_rubric_items, show_only_applied_rubric_items also exists, dependent on manual_grading
+
+            'commit': "Save"
+        }
+        validate_late_submissions(allow_late_submissions, late_due_date, data)
+        validate_group_size(group_size, group_submission, data)
+
+        if template_pdf_name is None:
+            files = {"template_pdf": ("", b'', 'application/octet-stream')}
+        else:
+            files = {"template_pdf": (template_pdf_name, template_pdf_data, 'application/octet-stream')}
+
+
+        return self.ses.post_soup(self.get_url(), data=data, files=files, allow_redirects=False, _return_request_object=True)
 
 class AutograderAssignment(Assignment):
     def update_autograder_zip(self, autograder_zip: bytes, zip_name:str="autograder.zip"):
