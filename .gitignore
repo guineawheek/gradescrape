@@ -6,3 +6,6 @@ geckodriver.log
 __pycache__/
 har/
 .ipynb_checkpoints/
+venv/
+dist/
+*.egg-info/
